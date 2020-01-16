@@ -1,8 +1,8 @@
 from vk_api.longpoll import VkLongPoll, VkEventType
-from ChatBotVk.ConstantsValue import vk
-from ChatBotVk.ListenThread import ThreadLongpoll
-from ChatBotVk.SendThread import ThreadSendMsg
-from ChatBotVk.NecessaryMethods import load_json
+from Tools.ConstantsValue import vk
+from Threads.ListenThread import ThreadLongpoll
+from Threads.SendThread import ThreadSendMsg
+from Tools.NecessaryMethods import load_json
 
 
 if __name__ == '__main__':

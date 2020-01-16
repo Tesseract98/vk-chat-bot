@@ -1,5 +1,5 @@
 from vk_api import vk_api
-from ChatBotVk.config.constants import TOKEN
+from config.constants import TOKEN
 
 digits = ['3138.42',
           '3452.26',

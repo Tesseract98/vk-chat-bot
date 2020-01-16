@@ -1,9 +1,9 @@
 from threading import Thread
 import time
 import datetime
-from ChatBotVk.NecessaryMethods import change_db, logger_error, write_msg
-from ChatBotVk.ConstantsValue import digits, len_digits_lst
-from ChatBotVk.config.constants import ID_ART, ID_SERG
+from Tools.NecessaryMethods import change_db, logger_error, write_msg
+from Tools.ConstantsValue import digits, len_digits_lst
+from config.constants import ID_ART
 
 
 class ThreadSendMsg(Thread):

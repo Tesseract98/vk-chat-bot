@@ -1,8 +1,8 @@
 import datetime
 import re
 from threading import Thread
-from ChatBotVk.NecessaryMethods import logger_error, write_msg, change_with_sign
-from ChatBotVk.NecessaryMethods import isAssureUser
+from Tools.NecessaryMethods import logger_error, write_msg, change_with_sign
+from Tools.NecessaryMethods import isAssureUser
 
 
 class ThreadLongpoll(Thread):

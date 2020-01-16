@@ -2,8 +2,8 @@ import datetime
 import logging
 import random
 from json import dumps, loads
-from ChatBotVk.ConstantsValue import digits, len_digits_lst, vk
-from ChatBotVk.config.constants import ID_SERG, ID_ART
+from Tools.ConstantsValue import digits, len_digits_lst, vk
+from config.constants import ID_ART
 
 logging.basicConfig(filename='log_bot.log', level=logging.INFO)
 
