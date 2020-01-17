@@ -1,57 +1,79 @@
-import datetime
+import logging as log
+import random
 import re
+from datetime import datetime
 from threading import Thread
-from Tools.NecessaryMethods import logger_error, write_msg, change_with_sign
-from Tools.NecessaryMethods import isAssureUser
+
+from Tools.NecessaryMethods import change_db
+from Tools.NecessaryMethods import isAssureUser, dict_to_str, calculate
 
 
 class ThreadLongpoll(Thread):
-    def __init__(self, longpoll, vk_event_type, day_global, parameters):
+    def __init__(self, vk, longpoll, vk_event_type, parameters):
         Thread.__init__(self)
+        self.__vk = vk
         self.longpoll = longpoll
         self.VkEventType = vk_event_type
-        self.day_global = day_global
         self.parameters = parameters
 
     def run(self):
-        pattern_for_aim = re.compile(r'[+\-](\d?)')
         while True:
             try:
-                day = self.day_global
-                flag_aim = False
-                parameters = self.parameters
                 for event in self.longpoll.listen():
                     # Если пришло новое сообщение
                     if event.type == self.VkEventType.MESSAGE_NEW:
-                        if day != datetime.datetime.day:
-                            flag_aim = True
-                            day = datetime.datetime.day
-                        # Если оно имеет метку для меня( то есть бота)
+                        # Если оно имеет метку для меня(то есть бота)
                         if event.to_me and isAssureUser(event.user_id):
-                            # Сообщение от пользователя
-                            request = event.text
-                            print('message from', event.user_id)
-                            regex_search = re.search(pattern_for_aim, request)
-                            try:
-                                if request.lower() == "привет":
-                                    write_msg(event.user_id, "Bonjorno")
-                                elif request.lower() == "пока":
-                                    write_msg(event.user_id, "Пока :(")
-                                elif regex_search:
-                                    regex_search = regex_search.group()
-                                    try:
-                                        change_with_sign(event, regex_search[0], parameters, int(regex_search[1]))
-                                    except IndexError as exc:
-                                        if flag_aim:
-                                            change_with_sign(event, regex_search[0], parameters=parameters)
-                                            flag_aim = False
-                                        else:
-                                            write_msg(event.user_id, "Цель на сегодня уже была отмечена выполненной")
-                                else:
-                                    write_msg(event.user_id, "Ответ непонятен...")
-                            except Exception as exc:
-                                write_msg(event.user_id, "!!!Неправильный символ!!!")
-                                logger_error('Wrong symbol: ', exc)
+                            self.process_new_message(event)
             except Exception as exc:
-                print('Server error:', exc)
-                logger_error('!Server error!')
+                log.error('!Server error!', exc_info=True)
+
+    def process_new_message(self, event):
+        variable = self.parameters['variable']
+        change_per_month = self.parameters['change_per_month']
+
+        # Сообщение от пользователя
+        request = event.text
+        print('message from', event.user_id)
+        request_str_arr = request.split()
+        try:
+            var_re = re.match(r'сбросить(\d)', request.lower())
+            if request.lower() == "привет":
+                self.write_msg(event.user_id, dict_to_str(variable))
+            elif len(request_str_arr) == 3 and (
+                    request_str_arr[0] in variable or request_str_arr[0] in change_per_month):
+                if request_str_arr[1] == '+':
+                    if request_str_arr[0] in variable:
+                        variable[request_str_arr[0]] += float(request_str_arr[-1])
+                    else:
+                        change_per_month[request_str_arr[0]] += float(request_str_arr[-1])
+                elif request_str_arr[1] == '-':
+                    if request_str_arr[0] in variable:
+                        variable[request_str_arr[0]] -= float(request_str_arr[-1])
+                    else:
+                        change_per_month[request_str_arr[0]] -= float(request_str_arr[-1])
+                calculate(variable, change_per_month)
+                # write_msg(event.user_id, dict_to_str(variable))
+                self.write_msg(event.user_id, "Успешно изменено")
+                change_db(self.parameters)
+            elif var_re:
+                if var_re.group(1) == "1":
+                    variable["СС"] = 0
+                    variable["ОС"] = 0
+                    variable["ОБ"] = 0
+                elif var_re.group(1) == "2":
+                    change_per_month["БА"] = 0
+                    change_per_month["В"] = 0
+                else:
+                    self.write_msg(event.user_id, "Wrong сбросить")
+                change_db(self.parameters)
+                self.write_msg(event.user_id, "Сброс выполнен")
+            else:
+                self.write_msg(event.user_id, "Ответ непонятен...")
+        except Exception as exc:
+            self.write_msg(event.user_id, "!!!Неправильный символ!!!")
+            log.error('!Server error!', exc_info=True)
+
+    def write_msg(self, user_id, message):
+        log.info('{}: user: id{}'.format(datetime.now().strftime("%d-%m-%Y %H:%M"), user_id))
+        self.__vk.method('messages.send', {'user_id': user_id, 'message': message, "random_id": random.randint(10, 1 << 32)})
