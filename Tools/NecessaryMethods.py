@@ -2,19 +2,18 @@ import datetime
 import logging
 import random
 from json import dumps, loads
-from Tools.ConstantsValue import digits, len_digits_lst, vk
-from config.constants import ID_ART
+from config.constants import ID_ART, ID_SERG, vk
+import codecs
 
 logging.basicConfig(filename='log_bot.log', level=logging.INFO)
 
 
 def isAssureUser(user_id):
-    # return user_id == ID_ART or user_id == ID_SERG
-    return user_id == ID_ART
+    return user_id == ID_ART or user_id == ID_SERG
 
 
 def load_json():
-    with open('data_base.json', 'r') as file:
+    with codecs.open('data_base.json', 'r', encoding='utf-8', errors='replace') as file:
         temp_dict = loads(file.read())
         return temp_dict
 
@@ -37,31 +36,8 @@ def write_msg(user_id, message):
     vk.method('messages.send', {'user_id': user_id, 'message': message, "random_id": random.randint(10, 12132132)})
 
 
-def change_with_sign(event, sign: str, parameters, digit=0):
-    if sign == '+':
-        var = parameters['index'] + digit
-        if var < len_digits_lst:
-            parameters['index'] = var
-            if digit > 0:
-                write_msg(event.user_id, "Текущее значение = {}".format(digits[var]))
-            elif digit == 0:
-                write_msg(event.user_id, "План {} выполнен.\n Кто красавчик, ты красавчик :)".format(digits[var]))
-                parameters['index'] += 1
-            change_db(parameters)
-        else:
-            write_msg(event.user_id,
-                      "!Выход за пределы масива! Текущее значение = {}".format(digits[parameters['index']]))
-    elif sign == '-':
-        var = parameters['index'] - digit
-        if var >= 0:
-            if digit > 0:
-                parameters['index'] = var
-                write_msg(event.user_id, "Текущее значение = {}".format(digits[var]))
-            elif digit == 0:
-                write_msg(event.user_id, "План {} не выполнен.\n Эх, ну ничего, завтра получится :(".format(digits[var]))
-            change_db(parameters)
-        else:
-            write_msg(event.user_id,
-                      "!Выход за пределы массива! Текущее значение = {}".format(digits[parameters['index']]))
-    else:
-        logger_error('Wrong condition')
+def dict_to_str(parameter: dict):
+    var_str = ""
+    for i in parameter:
+        var_str += "{}:{}\n".format(i, parameter[i])
+    return var_str

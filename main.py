@@ -1,18 +1,12 @@
 from vk_api.longpoll import VkLongPoll, VkEventType
-from Tools.ConstantsValue import vk
 from Threads.ListenThread import ThreadLongpoll
-from Threads.SendThread import ThreadSendMsg
 from Tools.NecessaryMethods import load_json
-
+from config.constants import vk
 
 if __name__ == '__main__':
     parameters = load_json()
-    parameters['date'] = '0'
     # Работа с сообщениями
     longpoll = VkLongPoll(vk)
-    day_global = parameters['date']
     # create threads
-    thread_send = ThreadSendMsg(parameters, day_global)
-    thread_send.start()
-    thread_msg_queue = ThreadLongpoll(longpoll, VkEventType, day_global, parameters)
+    thread_msg_queue = ThreadLongpoll(longpoll, VkEventType, parameters)
     thread_msg_queue.start()
