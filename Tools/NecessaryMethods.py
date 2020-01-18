@@ -41,3 +41,12 @@ def dict_to_str(parameter: dict):
     for i in parameter:
         var_str += "{}:{}\n".format(i, parameter[i])
     return var_str
+
+
+def calculate(variable, change_per_month):
+    change_per_month['ОЧС'] = change_per_month['ЧСВ'] + change_per_month['ЧСП']
+    try:
+        change_per_month['ПП'] = change_per_month['ЧСВ'] * 100 / change_per_month['ОЧС']
+    except ZeroDivisionError:
+        change_per_month['ПП'] = 0
+    change_per_month['БА'] = 0.01 * change_per_month['В']
